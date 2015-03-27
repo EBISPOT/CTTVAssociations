@@ -15,7 +15,10 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -141,7 +144,7 @@ Cell c8 = r.getCell(8);
 if (c8.toString().equalsIgnoreCase("x")){
 //subject - type 1 diabetes 
 String type1 = "http://purl.obolibrary.org/obo/DIAB_000004"; 
-String sourceDB = "BioMedBridges";
+String sourceDB = "DIAB ontology";
 String assocDate = "07/12/2012";
 String creatorName = "Frauke Neff";
 createOBANAssociation(manager, ontology, factory, type1, object, cause, symptom, pmid, assocDate, sourceDB, freq, creatorName);
@@ -150,7 +153,7 @@ createOBANAssociation(manager, ontology, factory, type1, object, cause, symptom,
 
 //associated with type 2 diabetes 
 String subject = "http://purl.obolibrary.org/obo/DIAB_000005"; 
-String sourceDB = "BioMedBridges";
+String sourceDB = "DIAB ontology";
 String assocDate = "07/12/2012";
 String creatorName = "Frauke Neff";
 //mint subject and object assertions
@@ -454,18 +457,36 @@ DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sss'Z'");
         manager.addAxiom(ontology, evidenceAssertion);
 
         
-        if(pmid != null){
+        // add pubmedid to prov if it exists 
+        if(pmid != null && ! pmid.isEmpty()){
+        	//create IRI for the pubmed ID
+            OWLNamedIndividual pmidIndividual = factory.getOWLNamedIndividual(IRI.create("http://identifiers.org/pubmed/" + pmid));
+
+          //make type of edam pubmedid
+            OWLClass edampmidclass = factory.getOWLClass(IRI.create("http://edamontology.org/data_1187"));
+
+            OWLClassAssertionAxiom pmidTypeAssertion = factory.getOWLClassAssertionAxiom(edampmidclass, pmidIndividual);
+            manager.addAxiom(ontology, pmidTypeAssertion);
+
+            OWLDataFactory df = manager.getOWLDataFactory();
+            OWLAnnotation labelAnno = df.getOWLAnnotation(df.getRDFSLabel(),
+                    df.getOWLLiteral("pubmed ID", "en"));
+            OWLAxiom ax = df.getOWLAnnotationAssertionAxiom(edampmidclass.getIRI(),
+                    labelAnno);
+            // Add the axiom to the ontology
+            manager.applyChange(new AddAxiom(ontology, ax));
+
             //mint datatype properties
-            OWLDataProperty hasPubmedID = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/has_pubmed_id"));
+            OWLObjectProperty hasPubmedID = factory.getOWLObjectProperty(IRI.create("http://purl.org/oban/has_pubmed_id"));
 
             //make assertion
-            OWLDataPropertyAssertionAxiom pubmedAssertion = factory.
-                    getOWLDataPropertyAssertionAxiom(hasPubmedID, provenanceIndividual, pmid);
+            OWLObjectPropertyAssertionAxiom pubmedAssertion = factory.
+                    getOWLObjectPropertyAssertionAxiom(hasPubmedID, provenanceIndividual, pmidIndividual);
             manager.addAxiom(ontology, pubmedAssertion);
         }
 
 
-        if(assocDate != null){
+        if(assocDate != null && !assocDate.isEmpty()){
             //mint datatype properties
             OWLDataProperty hasOriginCreatedDate = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/date_orgin_created"));
 
@@ -476,16 +497,66 @@ DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sss'Z'");
 
         }
 
-        if(sourceDB != null){
+      //add the source ontology if it exists
+        if(sourceDB != null && !sourceDB.isEmpty()){
+
+            //create instance for source database from the uri
+            OWLNamedIndividual sourceOntoIndividual = factory.getOWLNamedIndividual(IRI.create(sourceDB));
+            //mint uri for creator
+            OWLClass ontologyIdentifierClass = factory.getOWLClass(IRI.create("http://edamontology.org/data_0582"));
             //mint datatype properties
-            OWLDataProperty hasSourceDB = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/has_source_db"));
+            OWLObjectProperty hasSourceDB = factory.getOWLObjectProperty(IRI.create("http://purl.org/oban/has_source"));
+            //make individual db a type of the EDAM Miriam class
+            OWLClassAssertionAxiom miriamTypeAssertion = factory.getOWLClassAssertionAxiom(ontologyIdentifierClass, sourceOntoIndividual);
+            manager.addAxiom(ontology, miriamTypeAssertion);
+
+            //make assertion on provenance
+            OWLObjectPropertyAssertionAxiom sourceAssertion = factory.
+                    getOWLObjectPropertyAssertionAxiom(hasSourceDB, provenanceIndividual, sourceOntoIndividual);
+            manager.addAxiom(ontology, sourceAssertion);
+
+            /*
+            //add string as a label annotation on this individual
+            OWLDataFactory df = manager.getOWLDataFactory();
+            OWLAnnotation labelAnno = df.getOWLAnnotation(df.getRDFSLabel(),
+                    df.getOWLLiteral(sourceDB, "en"));
+            OWLAxiom ax = df.getOWLAnnotationAssertionAxiom(sourceDBIndividual.getIRI(),
+                    labelAnno);
+            // Add the axiom to the ontology
+            manager.applyChange(new AddAxiom(ontology, ax));
+            */
+
+        }
+        
+      //add individual name if the source was a person - can be string or an ID such as ORCID
+        if(creatorName != null && !creatorName.isEmpty()){
+            //create instance for person name
+            OWLNamedIndividual personIndividual = factory.getOWLNamedIndividual(IRI.create("http://purl.org/oban/" + HashingIdGenerator.generateHashEncodedID(creatorName)));
+            //mint uri for creator
+            OWLClass foafPersonClass = factory.getOWLClass(IRI.create("http://xmlns.com/foaf/spec/#term_Person"));
+            //mint datatype properties
+            OWLObjectProperty hasSourceDB = factory.getOWLObjectProperty(IRI.create("http://purl.org/oban/has_source"));
+
+            OWLClassAssertionAxiom foafPersonTypeAssertion = factory.getOWLClassAssertionAxiom(foafPersonClass, personIndividual);
+            manager.addAxiom(ontology, foafPersonTypeAssertion);
+
 
             //make assertion
-            OWLDataPropertyAssertionAxiom sourceDBAssertion = factory.
-                    getOWLDataPropertyAssertionAxiom(hasSourceDB, provenanceIndividual, sourceDB);
-            manager.addAxiom(ontology, sourceDBAssertion);
-        }
+            OWLObjectPropertyAssertionAxiom creatorAssertion = factory.
+                    getOWLObjectPropertyAssertionAxiom(hasSourceDB, provenanceIndividual, personIndividual);
+            manager.addAxiom(ontology, creatorAssertion);
 
+
+            //add name string as a label annotation on this individual
+            OWLDataFactory df = manager.getOWLDataFactory();
+            OWLAnnotation labelAnno = df.getOWLAnnotation(df.getRDFSLabel(),
+                    df.getOWLLiteral(creatorName, "en"));
+            OWLAxiom ax = df.getOWLAnnotationAssertionAxiom(personIndividual.getIRI(),
+                    labelAnno);
+            // Add the axiom to the ontology
+            manager.applyChange(new AddAxiom(ontology, ax));
+
+        }
         if(freq != null){
             //mint datatype properties
             OWLDataProperty hasFreq = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/has_frequency"));
@@ -505,6 +576,15 @@ DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sss'Z'");
         	OWLObjectPropertyAssertionAxiom subjectPropertyAssertion = factory.
                      getOWLObjectPropertyAssertionAxiom(hasSubjectProperty, associationIndividual, subjectPropertyIndividual);
              manager.addAxiom(ontology, subjectPropertyAssertion);
+             
+           //add  label annotation on this individual
+             OWLDataFactory df = manager.getOWLDataFactory();
+             OWLAnnotation labelAnno = df.getOWLAnnotation(df.getRDFSLabel(),
+                     df.getOWLLiteral("manifest diabetes", "en"));
+             OWLAxiom ax = df.getOWLAnnotationAssertionAxiom(subjectPropertyIndividual.getIRI(),
+                     labelAnno);
+             // Add the axiom to the ontology
+             manager.applyChange(new AddAxiom(ontology, ax));
 
          
 
@@ -521,7 +601,14 @@ DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sss'Z'");
                      getOWLObjectPropertyAssertionAxiom(hasSubjectProperty, associationIndividual, subjectPropertyIndividual);
              manager.addAxiom(ontology, subjectPropertyAssertion);
 
-         
+             //add  label annotation on this individual
+             OWLDataFactory df = manager.getOWLDataFactory();
+             OWLAnnotation labelAnno = df.getOWLAnnotation(df.getRDFSLabel(),
+                     df.getOWLLiteral("complications", "en"));
+             OWLAxiom ax = df.getOWLAnnotationAssertionAxiom(subjectPropertyIndividual.getIRI(),
+                     labelAnno);
+             // Add the axiom to the ontology
+             manager.applyChange(new AddAxiom(ontology, ax));
 
         	
         }
@@ -536,7 +623,14 @@ DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sss'Z'");
                      getOWLObjectPropertyAssertionAxiom(hasSubjectProperty, associationIndividual, subjectPropertyIndividual);
              manager.addAxiom(ontology, subjectPropertyAssertion);
 
-         
+             //add  label annotation on this individual
+             OWLDataFactory df = manager.getOWLDataFactory();
+             OWLAnnotation labelAnno = df.getOWLAnnotation(df.getRDFSLabel(),
+                     df.getOWLLiteral("pre-diabetes", "en"));
+             OWLAxiom ax = df.getOWLAnnotationAssertionAxiom(subjectPropertyIndividual.getIRI(),
+                     labelAnno);
+             // Add the axiom to the ontology
+             manager.applyChange(new AddAxiom(ontology, ax));
 
         	
         }
@@ -547,6 +641,15 @@ DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sss'Z'");
        	OWLObjectPropertyAssertionAxiom subjectPropertyAssertion = factory.
                     getOWLObjectPropertyAssertionAxiom(hasSubjectProperty, associationIndividual, subjectPropertyIndividual);
             manager.addAxiom(ontology, subjectPropertyAssertion);
+           
+            //add  label annotation on this individual
+            OWLDataFactory df = manager.getOWLDataFactory();
+            OWLAnnotation labelAnno = df.getOWLAnnotation(df.getRDFSLabel(),
+                    df.getOWLLiteral("cause", "en"));
+            OWLAxiom ax = df.getOWLAnnotationAssertionAxiom(subjectPropertyIndividual.getIRI(),
+                    labelAnno);
+            // Add the axiom to the ontology
+            manager.applyChange(new AddAxiom(ontology, ax));
         }
 
         
@@ -557,6 +660,15 @@ DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sss'Z'");
           	OWLObjectPropertyAssertionAxiom subjectPropertyAssertion = factory.
                        getOWLObjectPropertyAssertionAxiom(hasSubjectProperty, associationIndividual, subjectPropertyIndividual);
                manager.addAxiom(ontology, subjectPropertyAssertion);
+               
+               //add  label annotation on this individual
+               OWLDataFactory df = manager.getOWLDataFactory();
+               OWLAnnotation labelAnno = df.getOWLAnnotation(df.getRDFSLabel(),
+                       df.getOWLLiteral("symptom", "en"));
+               OWLAxiom ax = df.getOWLAnnotationAssertionAxiom(subjectPropertyIndividual.getIRI(),
+                       labelAnno);
+               // Add the axiom to the ontology
+               manager.applyChange(new AddAxiom(ontology, ax));
         }
 
         System.out.println("Axiom added");
