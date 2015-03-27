@@ -1,6 +1,6 @@
 package obanminter;
 
-import com.sun.prism.shader.Solid_ImagePattern_Loader;
+//import com.sun.prism.shader.Solid_ImagePattern_Loader;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.*;
