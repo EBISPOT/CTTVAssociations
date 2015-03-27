@@ -7,6 +7,7 @@ import java.io.File;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 /**
@@ -29,8 +30,16 @@ public class GetOntoLabel {
         
         File mpfile = new File("/home/drashtti/Desktop/ontologies/Diabetes-Onto/diab_MPimports.owl");
         // Now load the local copy
-        OWLOntology localPizza = manager.loadOntologyFromOntologyDocument(file);
-        System.out.println("Loaded ontology: " + localPizza);
+        OWLOntology localdiabHP;
+		try {
+			localdiabHP = manager.loadOntologyFromOntologyDocument(hpfile);
+			System.out.println("Loaded ontology: " + localdiabHP);
+			
+		} catch (OWLOntologyCreationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
 		
 		
 		
