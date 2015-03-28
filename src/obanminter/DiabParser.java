@@ -63,13 +63,13 @@ public void parseDiabFile (String outputpath){
 try {
 Workbook wbk1 = WorkbookFactory
 .create(new FileInputStream(
-"/home/drashtti/Desktop/ontologies/Diabetes-Onto/DIAB ontology development and annotated datasets.xlsx"));
+"/Users/vasant/DiabetesOntology/DIAB ontology development and annotated datasets.xlsx"));
 Sheet curation = wbk1.getSheet("2nd expert curation");
 System.out.println("Reading from sheet - 2nd expert curation.");
 
 
 //for pmid and frequency information
-Workbook wbk2 = WorkbookFactory.create(new FileInputStream ("/home/drashtti/Desktop/ontologies/Diabetes-Onto/processedtype2diabetes.xls"));
+Workbook wbk2 = WorkbookFactory.create(new FileInputStream ("/Users/vasant/DiabetesOntology/processedtype2diabetes.xls"));
 Sheet mining = wbk2.getSheetAt(0);
 System.out.println("Reading from text mining sheet.");
 
