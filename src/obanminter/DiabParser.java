@@ -260,7 +260,7 @@ DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sss'Z'");
         //create label for subject
         OWLDataFactory factory1 = manager.getOWLDataFactory();
         OWLAnnotation labelAnnot = factory1.getOWLAnnotation(factory1.getRDFSLabel(),
-                factory1.getOWLLiteral("type1 diabetes", "en"));
+                factory1.getOWLLiteral("type 1 diabetes", "en"));
         OWLAxiom axx = factory1.getOWLAnnotationAssertionAxiom(subjectIndividual.getIRI(),
                 labelAnnot);
         // Add the axiom to the ontology
@@ -511,7 +511,7 @@ boolean complications2,boolean cause, boolean symptom, String pmid, String assoc
         //create label for subject
         OWLDataFactory factory1 = manager.getOWLDataFactory();
         OWLAnnotation labelAnnot = factory1.getOWLAnnotation(factory1.getRDFSLabel(),
-                factory1.getOWLLiteral("type1 diabetes", "en"));
+                factory1.getOWLLiteral("type 2 diabetes", "en"));
         OWLAxiom axx = factory1.getOWLAnnotationAssertionAxiom(subjectIndividual.getIRI(),
                 labelAnnot);
         // Add the axiom to the ontology
