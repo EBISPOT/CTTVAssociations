@@ -37,7 +37,7 @@ public class GetOntoLabel {
      // local copy
         File hpfile = new File("/Users/vasant/DiabetesOntology/diab_HPimports.owl");
         
-        File mpfile = new File("/Users/vasant/DiabetesOntologydiab_MPimports.owl");
+        File mpfile = new File("/Users/vasant/DiabetesOntology/diab_MPimports.owl");
         // Now load the local copy
         OWLOntology localdiabHP;
         OWLOntology localdiabMP;

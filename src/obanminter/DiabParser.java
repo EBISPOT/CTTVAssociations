@@ -256,7 +256,26 @@ DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sss'Z'");
         OWLNamedIndividual objectIndividual = factory.getOWLNamedIndividual(objectIRI);
         OWLNamedIndividual associationIndividual = factory.getOWLNamedIndividual(assocIRI);
         OWLNamedIndividual provenanceIndividual = factory.getOWLNamedIndividual(provIRI);
+        
+        //create label for subject
+        OWLDataFactory factory1 = manager.getOWLDataFactory();
+        OWLAnnotation labelAnnot = factory1.getOWLAnnotation(factory1.getRDFSLabel(),
+                factory1.getOWLLiteral("type1 diabetes", "en"));
+        OWLAxiom axx = factory1.getOWLAnnotationAssertionAxiom(subjectIndividual.getIRI(),
+                labelAnnot);
+        // Add the axiom to the ontology
+        manager.applyChange(new AddAxiom(ontology, axx));
+        
 
+      //create label for the object - i.e. phenotype
+        //add  label annotation on this individual
+        OWLDataFactory df = manager.getOWLDataFactory();
+        OWLAnnotation labelAnno = df.getOWLAnnotation(df.getRDFSLabel(),
+                df.getOWLLiteral(label, "en"));
+        OWLAxiom ax = df.getOWLAnnotationAssertionAxiom(objectIndividual.getIRI(),
+                labelAnno);
+        // Add the axiom to the ontology
+        manager.applyChange(new AddAxiom(ontology, ax));
         
 
         
@@ -334,7 +353,7 @@ DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sss'Z'");
         if(sourceDB != null && !sourceDB.isEmpty()){
 
             //create instance for source database from the uri
-            OWLNamedIndividual sourceOntoIndividual = factory.getOWLNamedIndividual(IRI.create(sourceDB));
+            OWLNamedIndividual sourceOntoIndividual = factory.getOWLNamedIndividual(IRI.create("http://purl.bioontology.org/ontology/DIAB"));
             //mint uri for creator
             OWLClass ontologyIdentifierClass = factory.getOWLClass(IRI.create("http://edamontology.org/data_0582"));
             //mint datatype properties
@@ -489,6 +508,14 @@ boolean complications2,boolean cause, boolean symptom, String pmid, String assoc
         OWLNamedIndividual associationIndividual = factory.getOWLNamedIndividual(assocIRI);
         OWLNamedIndividual provenanceIndividual = factory.getOWLNamedIndividual(provIRI);
 
+        //create label for subject
+        OWLDataFactory factory1 = manager.getOWLDataFactory();
+        OWLAnnotation labelAnnot = factory1.getOWLAnnotation(factory1.getRDFSLabel(),
+                factory1.getOWLLiteral("type1 diabetes", "en"));
+        OWLAxiom axx = factory1.getOWLAnnotationAssertionAxiom(subjectIndividual.getIRI(),
+                labelAnnot);
+        // Add the axiom to the ontology
+        manager.applyChange(new AddAxiom(ontology, axx));
         
         //create label for the object - i.e. phenotype
         //add  label annotation on this individual
@@ -577,7 +604,7 @@ boolean complications2,boolean cause, boolean symptom, String pmid, String assoc
         if(sourceDB != null && !sourceDB.isEmpty()){
 
             //create instance for source database from the uri
-            OWLNamedIndividual sourceOntoIndividual = factory.getOWLNamedIndividual(IRI.create(sourceDB));
+            OWLNamedIndividual sourceOntoIndividual = factory.getOWLNamedIndividual(IRI.create("http://purl.bioontology.org/ontology/DIAB"));
             //mint uri for creator
             OWLClass ontologyIdentifierClass = factory.getOWLClass(IRI.create("http://edamontology.org/data_0582"));
             //mint datatype properties
